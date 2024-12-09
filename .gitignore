@@ -1,1 +1,13 @@
-/.github
+#Folders#
+.github/
+.vs/
+bin/
+obj/
+#Json configurations#
+appsettings.Development.json
+appsettings.Production.json
+launchSettings.json
+#Files extensions#
+*.user
+*.cache
+*.log
