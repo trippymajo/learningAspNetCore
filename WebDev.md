@@ -3,6 +3,26 @@ Model - Describes a model for data. Consists of the Class and members with `{get
 View - Output to user. `*.cshtml` items. Some weird mix of html and cs.  
 Controller - A bridge between Model and View, which make some manipulations with data and finally shows it to user via View.  
   
+## Working with DBs
+| Feature                    | ADO.NET | Dapper | Entity Framework Core |
+|----------------------------|--------|--------|-----------------------|
+| **Performance**            | 🔥 Fastest (low-level) | ⚡ Very Fast | 🐢 Moderate (ORM overhead) |
+| **SQL Control**            | ✅ Full control | ✅ Full control | ❌ Limited (Generated SQL) |
+| **Change Tracking**        | ❌ No | ❌ No | ✅ Yes |
+| **Migrations**             | ❌ Manual | ❌ Manual | ✅ Automatic |
+| **Bulk Operations**        | ✅ Best (SqlBulkCopy) | ⚡ Fast | ❌ Slow |
+| **Transactions**           | ✅ Full control | ✅ Manual | ✅ Automatic |
+| **Memory Usage**           | ✅ Optimized (Streams data) | ⚡ Low | ❌ High (Loads full objects) |
+| **Ease of Use**            | ❌ Complex | ✅ Simple | ✅ Easiest |
+| **Best For**               | High-performance apps | High-speed SQL apps | General applications |
+  
+### Entitty Framework Core
+It is a object-to-data store mapping to be used alongside with DBs. Does not support with ahead-of-time(AOT) publishing.  
+Two ways to use:  
+* **Database first**: DB exists, need to create a model.
+* **Code first**: DB not exists, need to create a model.
+  
+** Automatic way **
 As soon as Model created, can automatically generate methods around it which allow easy operations related with DB, also it will  
 create the table as represented in model. For this do:  
 1. Create Model
@@ -12,11 +32,17 @@ Choose Model class, `+` for DB context & DB provider.
 Here Migration files generated.
 4. `Update-Database` - creates database.
   
+** Manual way **
+1. Create Model
+2. Add Data folder and {name}Context.cs class  
+Which will inherit from DbContext and override `OnConfiguring()`
+3. In Program.cs init the DB with new();
+  
 Application is build with dependency injections
 
-## Dependency injection (DI)
+### Dependency injection (DI)
 Dependency Injection (DI) is a built-in feature of ASP.NET Core that helps manage dependencies in a clean and testable way.  
-Instead of creating objects manually, ASP.NET Core injects them automatically where needed.  
+Instead of creating objects manually, ASP.NET Core injects them automatically where needed. (You can do manually injection if working with ADO.NET)  
 In C++ we do it all manually via Design patterns like fabric, And passing params in constructors.  
 | Lifetime   | Description                          |
 |------------|--------------------------------------|
