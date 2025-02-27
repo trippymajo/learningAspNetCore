@@ -16,13 +16,48 @@ Controller - A bridge between Model and View, which make some manipulations with
 | **Ease of Use**            | ❌ Complex | ✅ Simple | ✅ Easiest |
 | **Best For**               | High-performance apps | High-speed SQL apps | General applications |
   
+### Dealing with relationships
+Foreign keys means relations in SQL, in order to implement them in C#.  
+Relation showing lanes are virtual in order to allow EF features as lazy loading and etc.  
+```cs
+public class Category
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = null!;
+
+    // One Category has many Products (1:N)
+    // Allow devs to add products to the category, also avoids exception if Count called
+    public virtual ICollection<Product> Products { get; set; } = new HashSet<Product>();
+}
+
+public class Product
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = null!;
+    
+    // Many Products belong to one Category (N:1)
+    // Category should be not null to be used in Product with CategoryId.
+    public int CategoryId { get; set; } 
+    public virtual Category Category { get; set; } = null!;
+}
+```
+  
 ### Entitty Framework Core
 It is a object-to-data store mapping to be used alongside with DBs. Does not support with ahead-of-time(AOT) publishing.  
 Two ways to use:  
-* **Database first**: DB exists, need to create a model.
-* **Code first**: DB not exists, need to create a model.
+* **Database first**: DB exists, need to create a model. [Index()...] not needed.
+* **Code first**: DB not exists, need to create a model. [Index()...] needed before the class.
   
 ** Automatic way **
+If Database is first:  
+* dotnet-ef should be installed
+* use such command in terminal `dotnet ef dbcontext scaffold ...`
+
+Example:
+```sh
+dotnet ef dbcontext scaffold "Server=your_server;Database=your_db;User Id=your_user;Password=your_password;" Microsoft.EntityFrameworkCore.your_Db_Provider -o Models
+```
+
 As soon as Model created, can automatically generate methods around it which allow easy operations related with DB, also it will  
 create the table as represented in model. For this do:  
 1. Create Model
@@ -31,6 +66,10 @@ Choose Model class, `+` for DB context & DB provider.
 3. DB created using `Add-Migration InitialCreate` in NuGet Package Manager -> Package Manager Console.  
 Here Migration files generated.
 4. `Update-Database` - creates database.
+  
+> [!TIP]
+> Scaffolding - using a tool to create classes that represent the model of exsisting database using reverse engineering.
+> The code by this tool is only approximate. So beware! 
   
 ** Manual way **
 1. Create Model
