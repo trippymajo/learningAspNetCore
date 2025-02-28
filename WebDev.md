@@ -89,6 +89,36 @@ In C++ we do it all manually via Design patterns like fabric, And passing params
 | Scoped     | One instance per HTTP request.      |
 | Transient  | New instance every time it’s requested. |
   
+### Using LINQ
+Allows to work with DB. When query is enumerated with `foreach` or calling method like `ToArray` or `ToList` it will trigger the execution of query agains DB.  
+`Where`,`Select`,`HroupBy`,`SelectMany`,`OfType`,`OrderBy`,`ThenBy`,`Join`,`GroupJoin`,`Take`,`Skip`,`Reverse` - safe for not triggering execution agains DB.  
+To know in which SQL query LINQ converts code can be done by `something.ToQueryString()`.
+Also it is possible to tag query for logging. With `.TagWith("Something")`
+```cs
+using MyDB db = new();
+
+// Building a query
+IQueryable<Category>? categories = db.Categories?.Include(c => c.Products);
+
+// Executing the query
+if (categories != null || !categories.Any())
+{
+    foreach (Category c in categories) // Triggers DB query execution
+        WriteLine($"{c.CategoryName} has {c.Products.Count} products");
+}
+```
+  
+Also EF Core 5 suports filtered includes like:
+```cs
+IQueryable<Category>? categories = db.Categories?
+    .Include(c => c.Products.Where(p => p.Stock >= 5));
+```
+  
+** Getting Single entity **  
+The queries will be immediately converted and executed.  
+`.First` - Can match one or more entities and only first will be returned. `LIMIT 1`  
+`.Single` - Matches exactly one entity and returned. Else if there is more then one match - exception. `LIMIT 2`  
+  
 # Vulnerabilities
 ## Over-posting
 Overposting happens when an attacker or a user submits more data than expected (e.g., modifying fields they shouldn't).  
