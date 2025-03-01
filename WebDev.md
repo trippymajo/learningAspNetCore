@@ -49,7 +49,7 @@ Two ways to use:
 * **Database first**: DB exists, need to create a model. [Index()...] attribute not needed.
 * **Code first**: DB not exists, need to create a model. [Index()...] attribute needed before the class.
   
-** Automatic way **
+**Automatic way**  
 If Database is first:  
 * dotnet-ef should be installed
 * use such command in terminal `dotnet ef dbcontext scaffold ...`
@@ -69,10 +69,10 @@ Here Migration files generated.
 4. `Update-Database` - creates database.
   
 > [!TIP]
-> Scaffolding - using a tool to create classes that represent the model of exsisting database using reverse engineering.
+> Scaffolding - using a tool to create classes that represent the model of exsisting database using reverse engineering.  
 > The code by this tool is only approximate. So beware! 
   
-** Manual way **
+**Manual way**  
 1. Create Model
 2. Add Data folder and {name}Context.cs class  
 Which will inherit from DbContext and override `OnConfiguring()`
@@ -152,9 +152,9 @@ context.SaveChanges();
 ```
   
 >[!TIP]
-> .AsNoTracking() for read-only queries to improve performance
-> For batch updates, use raw SQL or EF Core’s ExecuteUpdate() (EF Core 7+).
-> Use ExecuteDelete() for bulk deletions when using EF Core 7+.
+> .AsNoTracking() for read-only queries to improve performance.  
+> For batch updates, use raw SQL or EF Core’s ExecuteUpdate() (EF Core 7+).  
+> Use ExecuteDelete() for bulk deletions when using EF Core 7+.  
   
 ### Pattern matching with `.Like()`
 While LINQ does not support Like (replaced with other methods), EF can doi it.  
@@ -197,7 +197,7 @@ IQueryable<Category>? categories = db.Categories?
     .Include(c => c.Products.Where(p => p.Stock >= 5));
 ```
   
-** Getting Single entity **  
+**Getting Single entity**  
 The queries will be immediately converted and executed.  
 `.First` - Can match one or more entities and only first will be returned. `LIMIT 1`  
 `.Single` - Matches exactly one entity and returned. Else if there is more then one match - exception. `LIMIT 2`  
