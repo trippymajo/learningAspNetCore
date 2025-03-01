@@ -3,7 +3,7 @@ Model - Describes a model for data. Consists of the Class and members with `{get
 View - Output to user. `*.cshtml` items. Some weird mix of html and cs.  
 Controller - A bridge between Model and View, which make some manipulations with data and finally shows it to user via View.  
   
-## Working with DBs
+# Working with DBs
 | Feature                    | ADO.NET | Dapper | Entity Framework Core |
 |----------------------------|--------|--------|-----------------------|
 | **Performance**            | 🔥 Fastest (low-level) | ⚡ Very Fast | 🐢 Moderate (ORM overhead) |
@@ -16,7 +16,7 @@ Controller - A bridge between Model and View, which make some manipulations with
 | **Ease of Use**            | ❌ Complex | ✅ Simple | ✅ Easiest |
 | **Best For**               | High-performance apps | High-speed SQL apps | General applications |
   
-### Dealing with relationships
+## Dealing with relationships
 Foreign keys means relations in SQL, in order to implement them in C#.  
 Relation showing lanes are virtual in order to allow EF features as lazy loading and etc.  
 ```cs
@@ -42,11 +42,12 @@ public class Product
 }
 ```
   
-### Entitty Framework Core
+## Entitty Framework Core
 It is a object-to-data store mapping to be used alongside with DBs. Does not support with ahead-of-time(AOT) publishing.  
+Application is build with dependency injections.  
 Two ways to use:  
-* **Database first**: DB exists, need to create a model. [Index()...] not needed.
-* **Code first**: DB not exists, need to create a model. [Index()...] needed before the class.
+* **Database first**: DB exists, need to create a model. [Index()...] attribute not needed.
+* **Code first**: DB not exists, need to create a model. [Index()...] attribute needed before the class.
   
 ** Automatic way **
 If Database is first:  
@@ -77,17 +78,99 @@ Here Migration files generated.
 Which will inherit from DbContext and override `OnConfiguring()`
 3. In Program.cs init the DB with new();
   
-Application is build with dependency injections
+There are three loading patterns that are commonly used with EF Core:
+* Eager loading: Load data early.  
+* Lazy loading: Load data automatically just before it is needed.  
+* Explicit loading: Load data manually.  
+  
+| Feature         | Eager Loading | Lazy Loading | Explicit Loading |
+|---------------|--------------|-------------|----------------|
+| **Data Loading Time** | Immediately with the main query | When accessed | Manually controlled |
+| **Performance** | Efficient if related data is needed | Can cause extra queries (N+1 issue) | Efficient for selective loading |
+| **Code Complexity** | Simple (`Include()`) | Requires proxies (`virtual`) | Requires manual `Load()` calls |
+| **Best Use Case** | Always need related data | Rarely need related data | Need conditional loading |
 
-### Dependency injection (DI)
-Dependency Injection (DI) is a built-in feature of ASP.NET Core that helps manage dependencies in a clean and testable way.  
-Instead of creating objects manually, ASP.NET Core injects them automatically where needed. (You can do manually injection if working with ADO.NET)  
-In C++ we do it all manually via Design patterns like fabric, And passing params in constructors.  
-| Lifetime   | Description                          |
-|------------|--------------------------------------|
-| Singleton  | One instance per application.       |
-| Scoped     | One instance per HTTP request.      |
-| Transient  | New instance every time it’s requested. |
+```cs
+// Eager:
+var users = dbContext.Users
+    .Include(u => u.Orders)  // Loads Orders along with Users
+    .ToList();
+
+// Lazy:
+// In model
+public virtual List<Order> Orders { get; set; }
+// In code
+var user = dbContext.Users.Find(1);
+var orders = user.Orders; // Triggers query automatically
+
+// Explicit:
+var user = dbContext.Users.Find(1);
+// Explicitly loading related data
+dbContext.Entry(user).Collection(u => u.Orders).Load();
+```
+### CRUD operations
+1. Create  
+`Add()` and `SaveChanges()` to insert new records.
+2. Read
+* All Records `var users = context.Users.ToList();`
+* Single Record `var user = context.Users.Find(1);`
+* Filtering `var user = context.Users.FirstOrDefault(u => u.Email == "mail@example.com");`
+* Eager Loading (Include Related Data) `var usersWithOrders = context.Users.Include(u => u.Orders).ToList();`
+3. Update
+* By fetching:
+```cs
+var user = context.Users.Find(1);
+if (user != null)
+{
+    user.Name = "Alice Updated";
+    context.SaveChanges();
+}
+```
+* Without fetching (Directly):
+```cs
+var user = new User { Id = 1, Name = "Updated Name" };
+context.Users.Attach(user);
+context.Entry(user).Property(u => u.Name).IsModified = true;
+context.SaveChanges();
+```
+4. Delete
+* By fetching:
+```cs
+var user = context.Users.Find(1);
+if (user != null)
+{
+    context.Users.Remove(user);
+    context.SaveChanges();
+}
+```
+* Without fetching (Directly):
+```cs
+var user = new User { Id = 1 };
+context.Users.Attach(user);
+context.Users.Remove(user);
+context.SaveChanges();
+```
+  
+>[!TIP]
+> .AsNoTracking() for read-only queries to improve performance
+> For batch updates, use raw SQL or EF Core’s ExecuteUpdate() (EF Core 7+).
+> Use ExecuteDelete() for bulk deletions when using EF Core 7+.
+  
+### Pattern matching with `.Like()`
+While LINQ does not support Like (replaced with other methods), EF can doi it.  
+```cs
+string input = "CAT"
+var results = dbContext.Users
+    .Where(u => EF.Functions.Like(u.Name, $"%{input}%"))
+    .ToList();
+```
+"A%" → Starts with "A"  
+"%A" → Ends with "A"  
+"%A%" → Contains "A"  
+  
+### Using SQL query directly
+`.FromSql()` EF Core 7 or `FromSqlInterpolated()` for EF core 6 and earlier.  
+It can only be called on a `DbSet<T>` not on query.
   
 ### Using LINQ
 Allows to work with DB. When query is enumerated with `foreach` or calling method like `ToArray` or `ToList` it will trigger the execution of query agains DB.  
@@ -118,7 +201,46 @@ IQueryable<Category>? categories = db.Categories?
 The queries will be immediately converted and executed.  
 `.First` - Can match one or more entities and only first will be returned. `LIMIT 1`  
 `.Single` - Matches exactly one entity and returned. Else if there is more then one match - exception. `LIMIT 2`  
+
+# Dependency injection (DI)
+Dependency Injection (DI) is a built-in feature of ASP.NET Core that helps manage dependencies in a clean and testable way.  
+Instead of creating objects manually, ASP.NET Core injects them automatically where needed. (You can do manually injection if working with ADO.NET)  
+In C++ we do it all manually via Design patterns like fabric, And passing params in constructors.  
+
+| Lifetime       | Description | Example Usage |
+|--------------|-------------|--------------|
+| **Singleton** | One instance for the entire application lifetime. | Logging, Configuration, Caching |
+| **Scoped** | One instance per request (useful in web apps). | Database Context, Business Logic Services |
+| **Transient** | A new instance every time it is requested. | Lightweight, short-lived services |
   
+## How to do DI
+1. Register Services in Program.cs
+```cs
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<IUserService, UserService>();  // Register..
+var app = builder.Build();
+app.Run();
+```
+  
+2. Inject Dependencies into a Controller or Service
+```cs
+public class UserController : ControllerBase
+{
+    private readonly IUserService _userService;
+
+    public UserController(IUserService userService)
+    {
+        _userService = userService;
+    }
+
+    public IActionResult GetUsers()
+    {
+        var users = _userService.GetAllUsers();
+        return Ok(users);
+    }
+}
+```
+
 # Vulnerabilities
 ## Over-posting
 Overposting happens when an attacker or a user submits more data than expected (e.g., modifying fields they shouldn't).  
