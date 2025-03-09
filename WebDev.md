@@ -16,31 +16,15 @@ Controller - A bridge between Model and View, which make some manipulations with
 | **Ease of Use**            | ❌ Complex | ✅ Simple | ✅ Easiest |
 | **Best For**               | High-performance apps | High-speed SQL apps | General applications |
   
-## Dealing with relationships
-Foreign keys means relations in SQL, in order to implement them in C#.  
-Relation showing lanes are virtual in order to allow EF features as lazy loading and etc.  
-```cs
-public class Category
-{
-    public int CategoryId { get; set; }
-    public string CategoryName { get; set; } = null!;
-
-    // One Category has many Products (1:N)
-    // Allow devs to add products to the category, also avoids exception if Count called
-    public virtual ICollection<Product> Products { get; set; } = new HashSet<Product>();
-}
-
-public class Product
-{
-    public int ProductId { get; set; }
-    public string ProductName { get; set; } = null!;
-    
-    // Many Products belong to one Category (N:1)
-    // Category should be not null to be used in Product with CategoryId.
-    public int CategoryId { get; set; } 
-    public virtual Category Category { get; set; } = null!;
-}
-```
+| Feature          | SQL (Relational)          | NoSQL (Non-Relational)         |
+|-----------------|--------------------------|--------------------------------|
+| **Schema**      | Fixed, structured        | Dynamic, flexible             |
+| **Data Model**  | Tables (rows & columns)  | Document, Key-Value, Graph, Column-Family |
+| **Query Language** | SQL (Structured Query Language) | Varies (JSON, APIs, etc.) |
+| **Transactions** | ACID-compliant          | BASE, eventual consistency    |
+| **Scalability**  | Vertical scaling (more powerful servers) | Horizontal scaling (distributed nodes) |
+| **Performance**  | Optimized for complex queries | Optimized for high-speed, large-scale data handling |
+| **Use Case**    | Banking, ERP, e-commerce, structured data | Big data, real-time apps, IoT, flexible data storage |
   
 ## Entitty Framework Core
 It is a object-to-data store mapping to be used alongside with DBs. Does not support with ahead-of-time(AOT) publishing.  
@@ -108,6 +92,33 @@ var user = dbContext.Users.Find(1);
 // Explicitly loading related data
 dbContext.Entry(user).Collection(u => u.Orders).Load();
 ```
+  
+### Dealing with relationships
+Foreign keys means relations in SQL, in order to implement them in C#.  
+Relation showing lanes are virtual in order to allow EF features as lazy loading and etc.  
+```cs
+public class Category
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = null!;
+
+    // One Category has many Products (1:N)
+    // Allow devs to add products to the category, also avoids exception if Count called
+    public virtual ICollection<Product> Products { get; set; } = new HashSet<Product>();
+}
+
+public class Product
+{
+    public int ProductId { get; set; }
+    public string ProductName { get; set; } = null!;
+    
+    // Many Products belong to one Category (N:1)
+    // Category should be not null to be used in Product with CategoryId.
+    public int CategoryId { get; set; } 
+    public virtual Category Category { get; set; } = null!;
+}
+```
+  
 ### CRUD operations
 1. Create  
 `Add()` and `SaveChanges()` to insert new records.
