@@ -19,12 +19,13 @@ public class Product
     public int? SupplierId { get; set; }
 
     public int? CategoryId { get; set; }
+
+    [ForeignKey("CategoryId")]
     public Category Category { get; set; } = null!;
 
     [StringLength(20)]
     public string? QuantityPerUnit { get; set; }
 
-    [Column("money")]
     public decimal? UnitPrice { get; set; }
 
     public short? UnitsInStock { get; set; }

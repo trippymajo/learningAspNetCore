@@ -24,7 +24,12 @@ internal class Program
             return;
         }
 
-        
+        Serializers.XmlSerilizer(categories, false);
+        Serializers.XmlSerilizer(categories, true);
+
+        Serializers.JsonSerilizer(categories);
+
+        Console.WriteLine($"Saved in directory: {Environment.CurrentDirectory}");
     }
 }
 
